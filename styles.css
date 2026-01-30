@@ -14,10 +14,10 @@
     --text-muted: #555555;
     --border: #222222;
     --hover-bg: rgba(255, 255, 255, 0.05);
-    --spotlight-color: rgba(251, 146, 60, 0.15);
-    --spotlight-fade: rgba(251, 146, 60, 0.05);
+    --spotlight-color: rgba(30, 64, 175, 0.2);
+    --spotlight-fade: rgba(30, 64, 175, 0.08);
     --dock-bg: rgba(30, 30, 30, 0.8);
-    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font: 'Liberation Sans', Arial, sans-serif;
     --font-serif: 'Playfair Display', Georgia, serif;
 }
 
@@ -35,8 +35,8 @@
     --text-muted: #8a8172;
     --border: #d4cfc4;
     --hover-bg: rgba(0, 0, 0, 0.05);
-    --spotlight-color: rgba(180, 140, 80, 0.2);
-    --spotlight-fade: rgba(180, 140, 80, 0.08);
+    --spotlight-color: rgba(251, 146, 60, 0.2);
+    --spotlight-fade: rgba(251, 146, 60, 0.08);
     --dock-bg: rgba(244, 241, 234, 0.9);
 }
 
@@ -57,7 +57,7 @@ body {
 .spotlight {
     position: fixed;
     inset: 0;
-    z-index: 1;
+    z-index: -1;
     pointer-events: none;
     background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
             var(--spotlight-color),
@@ -91,8 +91,8 @@ body {
 }
 
 .avatar {
-    width: 64px;
-    height: 64px;
+    width: 96px;
+    height: 96px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--border);
