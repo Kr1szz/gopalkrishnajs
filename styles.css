@@ -18,6 +18,13 @@
     --spotlight-fade: rgba(251, 146, 60, 0.05);
     --dock-bg: rgba(30, 30, 30, 0.8);
     --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+/* Accent Serif Text */
+.accent {
+    font-family: var(--font-serif);
+    font-style: italic;
 }
 
 /* Sepia Light Mode */
