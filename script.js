@@ -9,6 +9,27 @@ document.addEventListener('mousemove', (e) => {
     spotlight.style.setProperty('--mouse-y', `${y}px`);
 });
 
+// ===== THEME TOGGLE =====
+const themeToggle = document.getElementById('theme-toggle');
+const html = document.documentElement;
+
+// Check for saved theme preference or default to dark
+const savedTheme = localStorage.getItem('theme') || 'dark';
+if (savedTheme === 'light') {
+    html.setAttribute('data-theme', 'light');
+}
+
+themeToggle.addEventListener('click', () => {
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    html.setAttribute('data-theme', newTheme === 'light' ? 'light' : '');
+    if (newTheme === 'dark') {
+        html.removeAttribute('data-theme');
+    }
+    localStorage.setItem('theme', newTheme);
+});
+
 // ===== SMOOTH SCROLL =====
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
