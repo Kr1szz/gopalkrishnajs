@@ -13,6 +13,7 @@ import { createScroller, clamp, INTRO, PROJECT_STEP, Y_END, Y_WORK } from './scr
 import { createSound } from './sound';
 import { createThemeToggle, currentTheme, type Theme } from './theme';
 import { createValley, type Valley } from './valley';
+import { onViewportChange } from './viewport';
 import { createWork } from './work';
 
 // ===== CONSOLE EASTER EGG =====
@@ -178,7 +179,8 @@ async function startFlight() {
         } else if (card >= 0) {
             if (Math.abs(y - (INTRO + card)) > 0.2) scroller.jump(INTRO + card);
         } else if (project >= 0) {
-            scroller.jump(Y_WORK + project * PROJECT_STEP);
+            const at = Y_WORK + project * PROJECT_STEP;
+            if (Math.abs(y - at) > 0.2) scroller.jump(at);
         }
     });
 
@@ -204,7 +206,7 @@ async function startFlight() {
         pointer.y = e.clientY / innerHeight;
     }, { passive: true });
 
-    addEventListener('resize', () => scroller.resize());
+    onViewportChange(() => scroller.resize());
 
     // ---- reload keeps the place, and links can point straight at a card ----
     // the browser's own restore runs before the page has its full length, so it is done by hand

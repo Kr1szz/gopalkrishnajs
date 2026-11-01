@@ -3,6 +3,7 @@ import {
     PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer,
 } from 'three';
 import { clamp, INTRO, smooth } from '../scroll';
+import { isTouch, onViewportChange, viewportHeight } from '../viewport';
 import { createPlaneGeometry, createSheet, SHEET_H, type Sheet } from './fold';
 import { createPaper } from './material';
 
@@ -57,12 +58,12 @@ function seeded(seed: number) {
 export function createPlanes(canvas: HTMLCanvasElement, card: { width(): number; height(): number; radius: number }): Planes | null {
     let renderer: WebGLRenderer;
     try {
-        renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+        renderer = new WebGLRenderer({ canvas, alpha: true, antialias: !isTouch(), powerPreference: 'high-performance' });
     } catch {
         return null;
     }
     renderer.setClearColor(0x000000, 0);
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, isTouch() ? 1.5 : 2);
     renderer.setPixelRatio(dpr);
 
     const scene = new Scene();
@@ -86,7 +87,7 @@ export function createPlanes(canvas: HTMLCanvasElement, card: { width(): number;
 
     // ---- the flock ----
     const narrow = innerWidth < 700;
-    const COUNT = narrow ? 13 : 30;
+    const COUNT = narrow ? 11 : 30;
     const geometry = createPlaneGeometry();
     const random = seeded(90210);
     const phase = new Float32Array(COUNT).map(() => random() * Math.PI * 2);
@@ -142,7 +143,7 @@ export function createPlanes(canvas: HTMLCanvasElement, card: { width(): number;
 
     function resize() {
         W = innerWidth;
-        H = innerHeight;
+        H = viewportHeight();
         renderer.setSize(W, H, false);
         camera.aspect = W / H;
         camera.position.z = H / 2 / Math.tan((FOV * Math.PI) / 360);
@@ -324,7 +325,7 @@ export function createPlanes(canvas: HTMLCanvasElement, card: { width(): number;
         flock.instanceMatrix.needsUpdate = true;
     }
 
-    addEventListener('resize', resize);
+    onViewportChange(resize);
     resize();
 
     let idle = false;

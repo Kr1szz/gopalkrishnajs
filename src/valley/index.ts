@@ -1,4 +1,5 @@
 import { COTTAGE, LAYERS, paintValley } from './paint';
+import { onViewportChange, viewportHeight } from '../viewport';
 import { FRAG, VERT } from './shader';
 
 const CELL = 2;             // CSS px per dot
@@ -84,7 +85,7 @@ export function createValley(canvas: HTMLCanvasElement, animate: boolean): Valle
         const dpr = window.devicePixelRatio || 1;
         const step = Math.max(1, Math.round(CELL * dpr));     // whole device pixels, so the dots stay even
         const cols = Math.ceil((innerWidth * dpr) / step);
-        const rows = Math.ceil((innerHeight * dpr) / step);
+        const rows = Math.ceil((viewportHeight() * dpr) / step);
         canvas.width = cols;
         canvas.height = rows;
         canvas.style.width = `${(cols * step) / dpr}px`;
@@ -137,7 +138,7 @@ export function createValley(canvas: HTMLCanvasElement, animate: boolean): Valle
         if (dirty) render();
     }
 
-    addEventListener('resize', resize);
+    onViewportChange(resize);
     resize();
     render();
     return { state, render, tick, resize };

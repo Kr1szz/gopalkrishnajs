@@ -1,5 +1,6 @@
 import { clamp, INTRO, smooth, Y_WORK_CTA } from '../scroll';
 import type { Fold } from '../planes';
+import { onViewportChange, viewportHeight } from '../viewport';
 
 // The carousel: cards come in from the right, step into a slot on the left, then fold into planes and fly away.
 // The last card, Work, stays: it grows, shrinks and docks at the top as the menu.
@@ -24,7 +25,7 @@ export function createDeck(hasPlanes: () => boolean): Deck {
     const menu = document.getElementById('menu')!;
     const burger = menu.querySelector<HTMLButtonElement>('.menu__burger')!;
 
-    const state = cards.map(() => ({ in: false, rx: 0, ry: 0, vx: 0, vy: 0, tx: 0, ty: 0 }));
+    const state = cards.map(() => ({ in: false, rx: 0, ry: 0, vx: 0, vy: 0, tx: 0, ty: 0, key: '' }));
     const hooks = new Map<HTMLElement, { arrive: () => void; leave?: () => void }>();
 
     let colours = cards.map(() => '#ffffff');
@@ -33,11 +34,17 @@ export function createDeck(hasPlanes: () => boolean): Deck {
     let step = 400;
     let wide = true;
     let current = 0;
+    let vw = innerWidth;
+    let vh = viewportHeight();
+    let notes = 0;
 
     function resize() {
+        vw = innerWidth;
+        vh = viewportHeight();
+        notes = corners.offsetWidth;
         cw = cards[0].offsetWidth;
         ch = cards[0].offsetHeight;
-        wide = innerWidth >= 1000;
+        wide = vw >= 1000;
         step = cw + 28;
         const bar = barWidth();
         menu.classList.toggle('is-compact', bar < 720);
@@ -49,8 +56,8 @@ export function createDeck(hasPlanes: () => boolean): Deck {
 
     // the corner notes keep the top right on wider screens; on phones they are at the bottom
     const corners = document.getElementById('corners')!;
-    const reserved = () => (innerWidth >= 700 ? corners.offsetWidth + 32 : 16);
-    const barWidth = () => Math.min(780, innerWidth - reserved() - 16);
+    const reserved = () => (vw >= 700 ? notes + 32 : 16);
+    const barWidth = () => Math.min(780, vw - reserved() - 16);
 
     // ---- hover: the card leans towards the cursor on springs ----
     cards.forEach((card, i) => {
@@ -118,8 +125,8 @@ export function createDeck(hasPlanes: () => boolean): Deck {
         const h = (ch * big) * (1 - shrink) + BAR_H * shrink;
 
         // stays centred, unless the corner notes need the room
-        const dockX = (innerWidth + bar) / 2 > innerWidth - reserved() ? 16 + bar / 2 - innerWidth / 2 : 0;
-        const dockY = -innerHeight / 2 + 16 + BAR_H / 2;
+        const dockX = (vw + bar) / 2 > vw - reserved() ? 16 + bar / 2 - vw / 2 : 0;
+        const dockY = -vh / 2 + 16 + BAR_H / 2;
 
         work.style.width = `${w}px`;
         work.style.height = `${h}px`;
@@ -159,7 +166,7 @@ export function createDeck(hasPlanes: () => boolean): Deck {
             const t = state[i];
             spring(i);
 
-            let x = d * step + (i > 0 ? pull * innerWidth * 0.7 : 0);
+            let x = d * step + (i > 0 ? pull * vw * 0.7 : 0);
             let cy = 0;
             let opacity = 1;
 
@@ -187,17 +194,22 @@ export function createDeck(hasPlanes: () => boolean): Deck {
 
             // the text leaves first, so that what folds is plain paper
             const o = isWork ? 1 : smooth(slot - TEXT_OUT, slot - 0.02, d);
-            card.style.setProperty('--o', String(o));
 
             // flown off first: a card past the slot keeps its last x, so it would still look on-screen
-            const onScreen = Math.abs(x) - cw / 2 < innerWidth / 2 - 40;
+            const onScreen = Math.abs(x) - cw / 2 < vw / 2 - 40;
             if (!isWork && d < slot - TEXT_OUT - FOLD_RANGE) arrive(i, false);
             else if (i === 0 ? landed || opacity > 0.4 : onScreen && d < 1.5 && s > 0.9) arrive(i, true);
             else if (d > 1.6 || (i === 0 && !landed && opacity <= 0.4)) arrive(i, false);
 
+            // only touch the DOM for what changed: at rest, or off screen, a card costs nothing
+            const key = `${x.toFixed(1)}|${cy.toFixed(1)}|${opacity.toFixed(3)}|${o.toFixed(3)}|${t.rx.toFixed(2)}|${t.ry.toFixed(2)}`;
+            if (key === t.key) return;
+            t.key = key;
+            card.style.setProperty('--o', String(o));
             card.style.opacity = String(opacity);
             // not visibility: hidden, or keyboard users could never tab to the cards that aren't on screen yet
             card.style.pointerEvents = opacity > 0 ? 'auto' : 'none';
+            card.classList.toggle('is-off', opacity === 0);
             card.style.transform = `translate3d(${x}px, ${cy}px, 0) translate(-50%, -50%) perspective(900px) rotateX(${t.rx}deg) rotateY(${t.ry}deg)`;
         });
 
@@ -206,7 +218,7 @@ export function createDeck(hasPlanes: () => boolean): Deck {
 
     resize();
     refreshColours();
-    addEventListener('resize', resize);
+    onViewportChange(resize);
 
     return {
         update,

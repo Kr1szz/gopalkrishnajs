@@ -49,6 +49,7 @@
             try { saved = localStorage.getItem('theme'); } catch (e) { }
             root.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
             root.classList.add('js');
+            if (matchMedia('(hover: none), (pointer: coarse)').matches) root.classList.add('touch');
             try { if (localStorage.getItem('sound') === 'off') root.setAttribute('data-sound', 'off'); } catch (e) { }
             if (!matchMedia('(prefers-reduced-motion: reduce)').matches) root.classList.add('fx');
         })();

@@ -723,9 +723,8 @@ a.card__entry:hover .card__name {
     right: 10px;
     top: calc(56px + var(--i) * 42px);
     padding: 10px 12px;
-    background: var(--glass);
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
+    background: var(--paper);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .menu.is-open .menu__burger i:first-child {
@@ -852,6 +851,21 @@ a.card__entry:hover .card__name {
 
 .scroll-track {
     display: none;
+    position: relative;
+}
+
+/* phones: real scrolling, snapped to each card */
+html.touch.fx {
+    scroll-snap-type: y mandatory;
+}
+
+.snap {
+    position: absolute;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
 }
 
 /* ===== THE FLIGHT: everything is pinned and driven by the scroll position ===== */
@@ -1184,4 +1198,62 @@ a.card__entry:hover .card__name {
     .intro__hint svg {
         animation: none;
     }
+}
+
+/* what isn't on screen shouldn't hold a layer */
+.fx .card.is-off,
+.fx .project.is-off {
+    will-change: auto;
+}
+
+.card:not(.is-in) .flow {
+    animation-play-state: paused;
+}
+
+/* ===== PHONES ===== */
+html.touch {
+    --glass-touch: color-mix(in srgb, var(--bg) 90%, transparent);
+}
+
+/* the bars come and go, so everything pinned sizes to the tall viewport and stays centred with the planes */
+html.touch.fx #scene,
+html.touch.fx .deck,
+html.touch.fx .work {
+    bottom: auto;
+    height: 100lvh;
+}
+
+html.touch .card.is-off,
+html.touch .project.is-off {
+    visibility: hidden;
+}
+
+/* backdrop filters repaint everything behind them on every frame of a scroll */
+html.touch .corners,
+html.touch .intro__hint,
+html.touch .peek,
+html.touch.fx .card--workcta.is-docked {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html.touch .corners,
+html.touch .intro__hint {
+    background: var(--glass-touch);
+}
+
+html.touch.fx .card,
+html.touch.fx .project {
+    will-change: auto;
+}
+
+html.touch.fx .card:not(.is-off),
+html.touch.fx .project:not(.is-off) {
+    will-change: transform;
+}
+
+/* a tap shouldn't flash grey over the card */
+html.touch a,
+html.touch button {
+    -webkit-tap-highlight-color: transparent;
 }

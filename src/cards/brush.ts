@@ -1,6 +1,8 @@
 // The cursor paints a soft trail over a card, and inside the trail the card's surface is redrawn in that card's style:
 // dither, halftone dots or ASCII. One small WebGL canvas moves into whichever card is hovered, behind its text.
 
+import { isTouch } from '../viewport';
+
 const VERT = /* glsl */ `#version 300 es
 in vec2 p;
 out vec2 vUv;
@@ -77,8 +79,6 @@ function glyphAtlas() {
 }
 
 export function createBrush() {
-    if (!matchMedia('(pointer: fine)').matches) return null;
-
     const canvas = document.createElement('canvas');
     canvas.className = 'card__fx';
     canvas.setAttribute('aria-hidden', 'true');
@@ -147,7 +147,7 @@ export function createBrush() {
         m.fillStyle = '#000';
         m.fillRect(0, 0, MASK_W, MASK_H);
         card.prepend(canvas);
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const dpr = Math.min(window.devicePixelRatio || 1, isTouch() ? 1.5 : 2);
         canvas.width = card.offsetWidth * dpr;
         canvas.height = card.offsetHeight * dpr;
         gl!.viewport(0, 0, canvas.width, canvas.height);
@@ -161,7 +161,7 @@ export function createBrush() {
         gl!.uniform1f(u.scale, dpr);
     }
 
-    function paint(card: HTMLElement, e: PointerEvent) {
+    function paint(card: HTMLElement, e: { clientX: number; clientY: number }) {
         attach(card);
         const rect = card.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * MASK_W;
@@ -185,11 +185,21 @@ export function createBrush() {
 
     return {
         bind(card: HTMLElement) {
-            card.addEventListener('pointermove', (e) => paint(card, e));
-            card.addEventListener('pointerleave', () => {
+            const lift = () => {
                 px = -1;
                 py = -1;
-            });
+            };
+            // a finger has no hover: it paints wherever it touches, and keeps painting as it drags
+            if (isTouch()) {
+                const touch = (e: TouchEvent) => paint(card, e.touches[0]);
+                card.addEventListener('touchstart', touch, { passive: true });
+                card.addEventListener('touchmove', touch, { passive: true });
+                card.addEventListener('touchend', lift, { passive: true });
+                card.addEventListener('touchcancel', lift, { passive: true });
+                return;
+            }
+            card.addEventListener('pointermove', (e) => paint(card, e));
+            card.addEventListener('pointerleave', lift);
         },
         tick(now: number) {
             if (!host || live <= 0) return;
