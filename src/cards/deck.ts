@@ -109,6 +109,13 @@ export function createDeck(hasPlanes: () => boolean): Deck {
     }
 
     burger.addEventListener('click', () => setCompactOpen(!menu.classList.contains('is-open')));
+    // an open menu gets out of the way as soon as the visitor does something else
+    addEventListener('pointerdown', (e) => {
+        if (!menu.contains(e.target as Node)) setCompactOpen(false);
+    }, { passive: true });
+    addEventListener('scroll', () => {
+        if (menu.classList.contains('is-open')) setCompactOpen(false);
+    }, { passive: true });
     menu.querySelectorAll<HTMLElement>('a:not(.menu__home)').forEach((a, i) => {
         a.style.setProperty('--i', String(i));
         a.addEventListener('click', () => setCompactOpen(false));

@@ -669,8 +669,10 @@ a.card__entry:hover .card__name {
     white-space: nowrap;
 }
 
-.fx .menu a:hover {
-    background: var(--line);
+@media (hover: hover) {
+    .fx .menu a:hover {
+        background: var(--line);
+    }
 }
 
 .fx .menu a.menu__home {
@@ -711,20 +713,35 @@ a.card__entry:hover .card__name {
     display: none;
 }
 
-/* the open compact menu is a panel under the bar */
+/* the open compact menu is one solid sheet under the bar */
 .fx .card--workcta.is-open {
     overflow: visible;
+    background: var(--paper) !important;
+}
+
+.fx .menu.is-compact.is-open::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    height: calc(var(--rows, 6) * 44px + 16px);
+    border-radius: 18px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
 }
 
 .fx .menu.is-compact.is-open a:not(.menu__home) {
     display: block;
     position: absolute;
-    left: 10px;
-    right: 10px;
-    top: calc(56px + var(--i) * 42px);
-    padding: 10px 12px;
-    background: var(--paper);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    left: 8px;
+    right: 8px;
+    top: calc(100% + 16px + var(--i) * 44px);
+    height: 44px;
+    padding: 0 12px;
+    line-height: 44px;
+    border-radius: 10px;
+    font-size: 14px;
 }
 
 .menu.is-open .menu__burger i:first-child {
@@ -1211,8 +1228,9 @@ html.touch.fx {
 }
 
 /* ===== PHONES ===== */
-html.touch {
-    --glass-touch: color-mix(in srgb, var(--bg) 90%, transparent);
+/* no blur here, so anything see-through would just show the page through it */
+html.touch[data-theme] {
+    --glass: var(--bg);
 }
 
 /* the bars come and go, so everything pinned sizes to the tall viewport and stays centred with the planes */
@@ -1235,11 +1253,6 @@ html.touch .peek,
 html.touch.fx .card--workcta.is-docked {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-}
-
-html.touch .corners,
-html.touch .intro__hint {
-    background: var(--glass-touch);
 }
 
 html.touch.fx .card,
