@@ -1,0 +1,8 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/resumev9.pdf", "destination": "/resume/resume.pdf", "permanent": false }
+  ]
+}

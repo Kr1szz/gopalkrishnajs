@@ -1,103 +1,415 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>gopalkrishnajs — Gopalkrishna JS</title>
+    <title>Gopalkrishna JS — Portfolio</title>
     <meta name="title" content="Gopalkrishna JS">
-    <meta name="description" content="Gopalkrishna JS - Developer & Student at RV College of Engineering, Bangalore">
+    <meta name="description"
+        content="Gopalkrishna JS — MCA student at RV College of Engineering, Bangalore, building backend systems, real-time analytics platforms and AI-powered applications.">
     <meta name="keywords"
-        content="gopalkrishna js, gopalkrishna, kr1szz, developer, student, rvce, rv college of engineering, bangalore, networking, security">
+        content="gopalkrishna js, gopalkrishna, kr1szz, developer, student, rvce, rv college of engineering, bangalore, backend, systems, linux, networking, security">
     <meta name="author" content="Gopalkrishna JS">
+    <meta name="theme-color" content="#fbf6ea">
+    <link rel="canonical" href="https://gopalkrishnajs.vercel.app/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gopalkrishnajs.vercel.app/">
     <meta property="og:title" content="Gopalkrishna JS">
-    <meta property="og:description" content="Developer & Student at RV College of Engineering, Bangalore">
-    <meta property="og:image" content="profile_original.jpg">
+    <meta property="og:description"
+        content="Backend and systems developer, MCA student at RV College of Engineering, Bangalore.">
+    <meta property="og:image" content="https://gopalkrishnajs.vercel.app/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Gopalkrishna JS">
-    <meta name="twitter:description" content="Developer & Student at RV College of Engineering, Bangalore">
-    <meta name="twitter:image" content="profile_original.jpg">
+    <meta name="twitter:description"
+        content="Backend and systems developer, MCA student at RV College of Engineering, Bangalore.">
+    <meta name="twitter:image" content="https://gopalkrishnajs.vercel.app/og.png">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-    <!-- Theme init (runs before paint to avoid FOUC) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+    <!-- Theme and motion init (runs before paint to avoid FOUC) -->
     <script>
         (function () {
-            var saved = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', saved);
+            var root = document.documentElement;
+            var saved = null;
+            try { saved = localStorage.getItem('theme'); } catch (e) { }
+            root.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
+            root.classList.add('js');
+            try { if (localStorage.getItem('sound') === 'off') root.setAttribute('data-sound', 'off'); } catch (e) { }
+            if (!matchMedia('(prefers-reduced-motion: reduce)').matches) root.classList.add('fx');
         })();
     </script>
 </head>
 
 <body>
-    <!-- Background Canvas -->
-    <div class="bg-canvas">
-        <div class="bg-blob bg-blob-1"></div>
-        <div class="bg-blob bg-blob-2"></div>
-        <div class="bg-grain"></div>
+    <!-- Loader -->
+    <div class="loader" id="loader" aria-hidden="true">
+        <div class="loader__ring"></div>
+        <div class="loader__num">0%</div>
     </div>
 
-    <!-- Theme Toggle -->
-    <button class="theme-toggle" aria-label="Toggle theme">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path class="sun-icon"
-                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-            <path class="moon-icon"
-                d="M12 3a9 9 0 109 9 9.75 9.75 0 00-6.74-3.5 3 3 0 01-4.76-4.76A9.75 9.75 0 0012 3z" />
-        </svg>
-    </button>
+    <!-- Liquid glass for the docked menu: bends what is under it (blur alone where this is unsupported) -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <filter id="glass" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.04" numOctaves="2" seed="7" result="n" />
+            <feGaussianBlur in="n" stdDeviation="2" result="soft" />
+            <feDisplacementMap in="SourceGraphic" in2="soft" scale="30" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+    </svg>
 
-    <main class="container">
-        <section class="hero">
-            <div class="hero-content">
-                <img src="profile_original.jpg" alt="Gopalkrishna JS" class="avatar">
+    <!-- Valley background, then the planes above it -->
+    <canvas id="valley" aria-hidden="true"></canvas>
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="veil" id="veil" aria-hidden="true"></div>
 
-                <h1 class="hero-name">Gopalkrishna JS</h1>
-                <p class="hero-title">developer & student at rvce</p>
+    <!-- Corner notes: theme and sound -->
+    <div class="corners" id="corners">
+        <span aria-hidden="true">(</span>
+        <button class="corner" type="button" data-corner="theme" aria-label="Toggle dark mode">
+            <span data-when="light">lights off</span><span data-when="dark">lights on</span>
+        </button>
+        <span class="corners__sound" aria-hidden="true">·</span>
+        <button class="corner corners__sound" type="button" data-corner="sound" aria-label="Toggle sound">
+            <span data-when="sound">sound on</span><span data-when="muted">sound off</span>
+        </button>
+        <span aria-hidden="true">)</span>
+    </div>
 
-                <p class="hero-bio">
-                    Hi, I'm a developer and student at RV College of Engineering, Bangalore. I build things on the
-                    internet — interested in networking, security, and creating tools that make a difference.
-                </p>
-                <p class="hero-bio">
-                    Outside of studying, I'm usually watching motorsports and movies, exploring security challenges, or working on side
-                    projects. Most of my work is available on <a href="https://github.com/kr1szz" target="_blank"
-                        rel="noopener noreferrer">GitHub</a>. Currently balancing academics, programming, and
-                    whatever else catches my interest.
-                </p>
-                <p class="hero-bio">
-                    I'm open to new roles, collaborations, and opportunities. Feel free to reach out — I get
-                    nerd-sniped easily, and a message about something that recently fascinated you would honestly
-                    make my day.
-                </p>
+    <!-- First screen: name in the sky, before the plane flies -->
+    <div class="intro" id="intro">
+        <p class="intro__name" aria-hidden="true">Gopalkrishna JS</p>
+        <p class="intro__line" aria-hidden="true">backend &amp; systems developer · bangalore</p>
+        <a class="intro__hint" href="#about" data-go="1">
+            <span>scroll</span>
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                <path d="M7 1h2v9h2v2H9v2H7v-2H5v-2h2zM3 8h2v2H3zm8 0h2v2h-2z" />
+            </svg>
+        </a>
+    </div>
 
-                <div class="hero-links">
-                    <a href="https://github.com/kr1szz" target="_blank" rel="noopener noreferrer"
-                        class="hero-link">github</a>
-                    <a href="https://linkedin.com/in/gopalkrishnajs" target="_blank" rel="noopener noreferrer"
-                        class="hero-link">linkedin</a>
-                    <a href="resumev9.pdf" target="_blank" class="hero-link">resume</a>
-                    <a href="mailto:gopalkrishnajs@proton.me" class="hero-link">email</a>
+    <main class="deck" id="deck">
+        <article class="card card--hero" id="top" data-effect="dither">
+            <ul class="card__tags">
+                <li>Backend</li>
+                <li>Systems</li>
+                <li>Linux</li>
+            </ul>
+            <div class="card__intro">
+                <h1 class="card__title">Gopalkrishna JS</h1>
+                <p class="card__text">MCA student at RV College of Engineering, building backend systems, real-time
+                    analytics platforms and AI-powered applications.</p>
+            </div>
+            <nav class="card__links" aria-label="Jump to">
+                <a href="#work" data-go="work">Work</a>
+                <a href="#contact" data-go="6">Contact</a>
+            </nav>
+        </article>
+
+        <article class="card card--about" id="about" data-effect="dots">
+            <h2 class="card__title">About me</h2>
+            <div class="card__sentence" data-type>
+                <p>hi, i'm <a href="https://github.com/kr1szz" target="_blank" rel="noopener noreferrer"
+                        data-peek="aka" data-note="kr1szz, most places online" data-label="github →">gopalkrishna</a>.
+                    i build things, lately <a href="https://github.com/Kr1szz/global-flight-heatmap" target="_blank"
+                        rel="noopener noreferrer" data-peek="skypulse"
+                        data-note="live flight heatmaps over WebSockets" data-label="source →">skypulse</a>,
+                    <a href="https://github.com/Kr1szz/Veles" target="_blank" rel="noopener noreferrer"
+                        data-peek="veles" data-note="verification risk scoring demo" data-label="source →">veles</a>
+                    and <a href="https://github.com/Kr1szz/toralizer" target="_blank" rel="noopener noreferrer"
+                        data-peek="toralizer" data-note="any TCP tool through Tor, via LD_PRELOAD"
+                        data-label="source →">toralizer</a>. i study at <a href="https://rvce.edu.in" target="_blank"
+                        rel="noopener noreferrer" data-peek="rvce"
+                        data-note="MCA, 2025 – 2027, Bangalore" data-label="college →">rvce</a>, watch motorsports and
+                    movies, and get nerd-sniped easily, so <a href="mailto:gopalkrishnajs@proton.me" data-peek="say hi"
+                        data-note="tell me what fascinated you lately" data-label="email me →">say hi</a>.</p>
+                <p class="card__aside">( open to new roles and collaborations )</p>
+            </div>
+        </article>
+
+        <article class="card card--stack" id="stack" data-effect="ascii">
+            <div class="card__intro">
+                <h2 class="card__title">Stack</h2>
+                <p class="card__text">Interested in Linux systems and performance engineering.</p>
+            </div>
+            <ul class="card__pile" aria-label="Skills">
+                <li>C++</li>
+                <li>Rust</li>
+                <li>Python</li>
+                <li>TypeScript</li>
+                <li>SQL</li>
+                <li>Bash</li>
+                <li>FastAPI</li>
+                <li>Node.js</li>
+                <li>REST APIs</li>
+                <li>PostgreSQL</li>
+                <li>PostGIS</li>
+                <li>Redis</li>
+                <li>Linux</li>
+                <li>AWS</li>
+                <li>Docker</li>
+                <li>Kubernetes</li>
+                <li>Git</li>
+                <li>GNS3</li>
+                <li>NumPy</li>
+                <li>Pandas</li>
+                <li>Matplotlib</li>
+                <li>Unity 3D</li>
+                <li>Figma</li>
+            </ul>
+        </article>
+
+        <article class="card card--experience" id="experience" data-effect="dither">
+            <h2 class="card__title">Experience</h2>
+            <div class="card__entries">
+                <div class="card__entry">
+                    <p class="card__name">COE Intern, AI Research and Business Solutions</p>
+                    <p class="card__meta">Center of Excellence, RVCE–Boston / Aug – Dec 2026</p>
+                </div>
+                <div class="card__entry">
+                    <p class="card__name">Student Placement Coordinator</p>
+                    <p class="card__meta">RVCE / Apr 2026 – Present</p>
+                </div>
+                <div class="card__entry">
+                    <p class="card__name">Student Coordinator, ICOSICS 2026</p>
+                    <p class="card__meta">IEEE conference on Secure IoT and Cybersecurity / Sep 2026</p>
+                </div>
+                <div class="card__entry">
+                    <p class="card__name">Student Coordinator, IEEE Workshop</p>
+                    <p class="card__meta">Gen AI and Agentic Intelligence / Apr 2026</p>
                 </div>
             </div>
-        </section>
+        </article>
+
+        <article class="card card--education" id="education" data-effect="dots">
+            <h2 class="card__title">Education</h2>
+            <div class="card__entries">
+                <div class="card__entry">
+                    <p class="card__name">RV College of Engineering</p>
+                    <p class="card__meta">Master of Computer Applications / 2025 – 2027 (Expected)</p>
+                    <p class="card__meta">CGPA 8.48</p>
+                </div>
+                <div class="card__entry">
+                    <p class="card__name">Sri Bhuvanendra College, Karkala</p>
+                    <p class="card__meta">Bachelor of Computer Applications / 2022 – 2025</p>
+                    <p class="card__meta">CGPA 9.00</p>
+                </div>
+            </div>
+        </article>
+
+        <article class="card card--recognition" id="recognition" data-effect="dither">
+            <h2 class="card__title">Recognition</h2>
+            <div class="card__entries">
+                <div class="card__entry">
+                    <p class="card__name">2nd Place, ABBS Bengaluru Hackathon 2026</p>
+                    <p class="card__meta">Aegis, a real-time phishing and fraud detection platform</p>
+                </div>
+                <div class="card__entry">
+                    <p class="card__name">Participant, FantomCode 2026</p>
+                    <p class="card__meta">RVITM Bengaluru hackathon, with OpenAudit</p>
+                </div>
+            </div>
+            <div class="card__flow" aria-hidden="true">
+                <div class="flow">
+                    <span>Aegis</span><span>Phishing</span><span>Fraud detection</span><span>Real-time</span>
+                    <span>Aegis</span><span>Phishing</span><span>Fraud detection</span><span>Real-time</span>
+                </div>
+                <div class="flow flow--back">
+                    <span>OpenAudit</span><span>Receipts</span><span>Tax</span><span>Expense audit</span>
+                    <span>OpenAudit</span><span>Receipts</span><span>Tax</span><span>Expense audit</span>
+                </div>
+                <div class="flow">
+                    <span>Hackathons</span><span>Bengaluru</span><span>2026</span><span>Ship it</span>
+                    <span>Hackathons</span><span>Bengaluru</span><span>2026</span><span>Ship it</span>
+                </div>
+            </div>
+        </article>
+
+        <article class="card card--contact" id="contact" data-effect="ascii">
+            <h2 class="card__title">Contact</h2>
+            <div class="card__entries">
+                <a class="card__entry" href="mailto:gopalkrishnajs@proton.me">
+                    <p class="card__name">Email</p>
+                    <p class="card__meta">gopalkrishnajs@proton.me</p>
+                </a>
+                <a class="card__entry" href="https://github.com/kr1szz" target="_blank" rel="noopener noreferrer">
+                    <p class="card__name">GitHub</p>
+                    <p class="card__meta">github.com/kr1szz</p>
+                </a>
+                <a class="card__entry" href="https://linkedin.com/in/gopalkrishnajs" target="_blank"
+                    rel="noopener noreferrer">
+                    <p class="card__name">LinkedIn</p>
+                    <p class="card__meta">linkedin.com/in/gopalkrishnajs</p>
+                </a>
+                <a class="card__entry" href="/resume/resume.pdf" target="_blank">
+                    <p class="card__name">Resume</p>
+                    <p class="card__meta">( the paper version )</p>
+                </a>
+            </div>
+            <p class="card__where">Bangalore, India · <span data-clock></span></p>
+        </article>
+
+        <article class="card card--workcta" id="work-cta" data-effect="dots">
+            <div class="workcta__face">
+                <h2 class="card__title">Work</h2>
+                <p class="index__label">Selected work:</p>
+                <ol class="index">
+                    <li><a href="#work" data-go="p0">SkyPulse<span aria-hidden="true">←</span></a></li>
+                    <li><a href="#work" data-go="p1">Veles<span aria-hidden="true">←</span></a></li>
+                    <li><a href="#work" data-go="p2">Aegis<span aria-hidden="true">←</span></a></li>
+                    <li><a href="#work" data-go="p3">OpenAudit<span aria-hidden="true">←</span></a></li>
+                    <li><a href="#work" data-go="p4">Toralizer<span aria-hidden="true">←</span></a></li>
+                    <li><a href="#work" data-go="p5">Crossbook<span aria-hidden="true">←</span></a></li>
+                    <li><a href="#work" data-go="p6">Arecanut YLD<span aria-hidden="true">←</span></a></li>
+                </ol>
+            </div>
+            <nav class="menu" id="menu" aria-label="Menu">
+                <a class="menu__home" href="#top" data-go="home" aria-label="Gopalkrishna JS, back to the start">Gopalkrishna JS</a>
+                <a href="#work" data-go="work">Work</a>
+                <a href="#about" data-go="1">About</a>
+                <a href="#stack" data-go="2">Stack</a>
+                <a href="#experience" data-go="3">Experience</a>
+                <a href="#education" data-go="4">Education</a>
+                <a href="#contact" data-go="6">Contact</a>
+                <button class="menu__burger" type="button" aria-label="Menu" aria-expanded="false"><i></i><i></i></button>
+            </nav>
+        </article>
     </main>
 
-    <footer class="home-footer">
-        <span>📍 Bangalore, India</span>
-        <span class="footer-dot"></span>
-        <span id="localTime"></span>
-    </footer>
+    <section class="work" id="work" aria-label="Work">
+        <article class="project" data-cover="heatmap">
+            <canvas class="project__cover" aria-hidden="true"></canvas>
+            <div class="project__body">
+                <p class="project__meta">2026 – Present</p>
+                <h3 class="project__title">SkyPulse</h3>
+                <p class="project__text">A real-time flight tracking and geospatial analytics platform. Streams 1,000+
+                    aircraft records over WebSockets onto interactive maps and dynamic heatmaps, at roughly 500 ms
+                    latency in testing.</p>
+                <p class="project__stack">React · TypeScript · FastAPI · PostgreSQL/PostGIS · Redis · Docker</p>
+                <p class="project__links"><a href="https://github.com/Kr1szz/global-flight-heatmap" target="_blank"
+                        rel="noopener noreferrer">GitHub</a></p>
+            </div>
+        </article>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/gsap.min.js"></script>
-    <script src="script.js"></script>
+        <article class="project" data-cover="shield">
+            <canvas class="project__cover" aria-hidden="true"></canvas>
+            <div class="project__body">
+                <p class="project__meta">2026</p>
+                <h3 class="project__title">Veles</h3>
+                <p class="project__text">A local demo app for verification risk scoring: KYC and transaction endpoints,
+                    a review dashboard with audit records, and a polite same-origin crawler, with optional C++ scoring
+                    acceleration.</p>
+                <p class="project__stack">Python · C++ · React · SQLite · Redis · Docker</p>
+                <p class="project__links"><a href="https://github.com/Kr1szz/Veles" target="_blank"
+                        rel="noopener noreferrer">GitHub</a></p>
+            </div>
+        </article>
+
+        <article class="project" data-cover="radar">
+            <canvas class="project__cover" aria-hidden="true"></canvas>
+            <div class="project__body">
+                <p class="project__meta">2nd Place, ABBS Bengaluru Hackathon 2026</p>
+                <h3 class="project__title">Aegis</h3>
+                <p class="project__text">A real-time phishing and fraud detection platform, built at the ABBS Bengaluru hackathon.</p>
+                <p class="project__stack">Next.js · FastAPI · Python</p>
+                <p class="project__links"><a href="https://github.com/Kr1szz/aegis" target="_blank"
+                        rel="noopener noreferrer">GitHub</a></p>
+            </div>
+        </article>
+
+        <article class="project" data-cover="receipt">
+            <canvas class="project__cover" aria-hidden="true"></canvas>
+            <div class="project__body">
+                <p class="project__meta">FantomCode, RVITM Bengaluru 2026</p>
+                <h3 class="project__title">OpenAudit</h3>
+                <p class="project__text">AI-powered expense auditing that reads receipts, flags likely fraud, calculates
+                    taxes and turns spending into actionable insights.</p>
+                <p class="project__stack">JavaScript · Node.js</p>
+                <p class="project__links">
+                    <a href="https://open-audit-dusky.vercel.app/" target="_blank" rel="noopener noreferrer">Live</a>
+                    <a href="https://github.com/Kr1szz/OpenAudit" target="_blank"
+                        rel="noopener noreferrer">GitHub</a>
+                </p>
+            </div>
+        </article>
+
+        <article class="project" data-cover="onion">
+            <canvas class="project__cover" aria-hidden="true"></canvas>
+            <div class="project__body">
+                <p class="project__meta">Linux tool</p>
+                <h3 class="project__title">Toralizer</h3>
+                <p class="project__text">An <code>LD_PRELOAD</code> library that intercepts <code>connect()</code> and
+                    routes outbound TCP through Tor's SOCKS5 proxy, so tools like curl and ssh use Tor without native
+                    proxy support.</p>
+                <p class="project__stack">C · Linux · SOCKS5 · Tor</p>
+                <p class="project__links"><a href="https://github.com/Kr1szz/toralizer" target="_blank"
+                        rel="noopener noreferrer">GitHub</a></p>
+            </div>
+        </article>
+
+        <article class="project" data-cover="book">
+            <canvas class="project__cover" aria-hidden="true"></canvas>
+            <div class="project__body">
+                <p class="project__meta">C++ HFT Engine / systems study</p>
+                <h3 class="project__title">Crossbook</h3>
+                <p class="project__text">An educational limit order book and matching engine in C++17: price-time priority, partial fills, cancellation, unit tests and benchmarks. Single-threaded, and a simulator rather than a live trading system.</p>
+                <p class="project__stack">C++17 · CMake · Ninja · CTest · Linux</p>
+                <p class="project__links"><a href="https://github.com/Kr1szz/cpp-hft-engine" target="_blank"
+                        rel="noopener noreferrer">GitHub</a></p>
+            </div>
+        </article>
+
+        <article class="project" data-cover="crop">
+            <canvas class="project__cover" aria-hidden="true"></canvas>
+            <div class="project__body">
+                <p class="project__meta">Research, with RRSC-South and CPCRI</p>
+                <h3 class="project__title">Arecanut YLD detection</h3>
+                <p class="project__text">Mapped arecanut plantations from three years of Sentinel-2 imagery, using 15
+                    vegetation indices and Random Forest classification to grade crop health and locate disease
+                    hotspots.</p>
+                <p class="project__stack">Python · Sentinel-2 · GIS · Random Forest</p>
+            </div>
+        </article>
+
+        <footer class="project project--end">
+            <div class="project__body">
+                <h3 class="project__title">That's the valley.</h3>
+                <p class="project__text">Most of my work is on <a href="https://github.com/kr1szz" target="_blank"
+                        rel="noopener noreferrer">GitHub</a>, <a href="https://github.com/Kr1szz/gopalkrishnajs"
+                        target="_blank" rel="noopener noreferrer">this site</a> included. A message about something
+                    that recently fascinated you is always welcome.</p>
+                <p class="project__links">
+                    <a href="#top" data-go="home">Fly home</a>
+                    <a href="mailto:gopalkrishnajs@proton.me">Send a plane</a>
+                </p>
+                <p class="project__meta">Bangalore, India · <span data-clock></span></p>
+                <p class="project__foot">
+                    <a href="mailto:gopalkrishnajs@proton.me">gopalkrishnajs@proton.me</a>
+                    <a href="https://github.com/kr1szz" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://linkedin.com/in/gopalkrishnajs" target="_blank"
+                        rel="noopener noreferrer">LinkedIn</a>
+                </p>
+            </div>
+        </footer>
+    </section>
+
+    <!-- Scroll length for the whole flight; sized in script -->
+    <div class="scroll-track" id="track" aria-hidden="true"></div>
+
+    <script type="module" src="/src/main.ts"></script>
 </body>
 
 </html>
